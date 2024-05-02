@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <!-- Load d3-cloud -->
+    <script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/d3.layout.cloud.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather&display=swap">
+
+    <style>
+      body {
+        font-size: 13px;
+        font-family: 'Libre Baskerville', serif;
+				font-weight: 300;
+				fill: #030303;
+				text-align: center;
+				text-shadow: 0 1px 0 #f8f8f6, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+				cursor: default;
+			}
+    </style>
+</head>
+
+<body>
+  <div id="cloudTime" style="margin-top: 20px; font-family: Lobster; font-size: 20px"></div>
+  <div>
+    <div style="margin-top: 20px; margin-bottom: 20px;">
+      <label for="datePicker" style="font-family: Lobster; font-size: 20px">Choose a date:</label>
+      <input type="date" id="datePicker" name="datePicker">
+    </div>
+  </div>
+
+  <!-- Create a div where the graph will take place -->
+  <div id="wordCloud"></div>
+  <div id="legend"></div>
+
+<script>
+  // 定义情感对应的颜色
+  var colors = {
+  positive: d3.scaleLinear().domain([1, 20]).range(["#FFEEE0", "#FF6600"]),
+  negative: d3.scaleLinear().domain([1, 20]).range(["lightblue", "darkblue"]),
+  neutral: d3.scaleLinear().domain([1, 20]).range(["lightgreen", "darkgreen"])
+};
+
+document.getElementById("datePicker").addEventListener("change", function() {
+    var selectedDate = this.value;
+    updateWordCloud(selectedDate);
+});
+
+// 调整图表的尺寸
+var margin = { top: 20, right: 20, bottom: 20, left: 20 },
+    width = 400 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom; // 减小高度
+
+
+var svg = d3.select("#wordCloud").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+/*在使用D3的d3.layout.cloud()生成词云时，词汇项的排列顺序通常基于它们的频率和所选的算法。
+算法会尝试将最常见（或具有最大字体大小）的词放在中心位置，并在云中周围排列较小的词。算法还会尝试避免词之间的重叠。
+所以默认情况下，它们可能根据词的大小（由size属性表示）进行排列，这可能与情感分析的结果或其他度量有关*/
+    var layout = d3.layout.cloud()
+    .size([width, height])
+    .padding(2) // 间距
+    /*不同情绪旋转不同*/
+    /*.rotate(function(d) {
+        if (d.sentiment === 'positive') {
+            return 0; // 正面情感水平显示
+        } else if (d.sentiment === 'neutral') {
+            return 45; // 中立情感倾斜45度
+        } else {
+            return 90; // 负面情感垂直显示
+        }
+    })*/
+    .rotate(0)
+    /*随机旋转90度*/
+    //.rotate(function() { return ~~(Math.random() * 2) * 90; }) //旋转
+    .fontSize(function(d) { return d.size; })
+    .on("end", draw);
+
+
+// 适当调整字体大小的范围
+var fontSizeScale = d3.scaleLinear()
+    .domain([-1, 1])
+    .range([1, 20]); // 调整字体大小范围
+
+function updateWordCloud(dateToFilter) {
+  // 将日期字符串转换为只有年月日的格式
+  var selectedDate = new Date(dateToFilter).toISOString().split('T')[0]; // 请注意变量名的更改
+  d3.json("http://localhost:8000/sentiment/sentence_emotion_result.json", function(error, data) {
+    if (error) throw error;
+
+    var sentencesForCloud = data.filter(function(d) { return d.time === dateToFilter; })
+                                .map(function(d) {
+                                    var keywordsString = d.keywords.filter(function(keyword) {
+                                      return keyword.match(/\w+/); // 仅选择包含字母和数字的关键词
+                                    }).join(" "); // 将关键词连接成一个字符串
+
+                                    return {
+                                        sentence: keywordsString, // 使用连接的关键词字符串
+                                        size: fontSizeScale(Math.abs(d.result.sentiment.compound)), // 使用比例尺
+                                        sentiment: d.result.sentiment.label
+                                    };
+                                });
+
+    console.log(sentencesForCloud);
+    document.getElementById('cloudTime').innerText = "Word Cloud Time: " + dateToFilter;
+    // 清除先前的词云内容
+    svg.selectAll("g").remove();
+
+    // 重新定义布局，并使用新数据启动
+    layout.words(sentencesForCloud.map(function(d) { return {text: d.sentence, size: d.size, sentiment: d.sentiment}; }))
+          .start();
+  });
+}
+
+  // 在页面加载时调用一次更新词云的函数，以加载默认日期或首次选择的日期
+  updateWordCloud("2023-05-01");
+
+  // draw 函数中，将填充色更改为基于情感的颜色
+  function draw(words) {
+    svg.append("g")
+        .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+        .selectAll("text")
+        .data(words)
+        .enter().append("text")
+        .style("font-size", function(d) { return d.size + "px"; }) // 添加“px”
+        .style("fill", function(d) { return colors[d.sentiment](d.size); }) // 使用对应情感的颜色比例尺
+        .attr("text-anchor", "middle")
+            .style("font-family", "Impact")
+        .attr("transform", function(d) {
+            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.text; });
+  }
+
+  // 创建图例的SVG元素
+  var legendWidth = 300, legendHeight = 60;
+  var legendSvg = d3.select("#legend").append("svg")
+        .attr("width", legendWidth)
+        .attr("height", legendHeight);
+
+    // 定义每个颜色图例的大小和间隔
+  var legendElementWidth = (legendWidth - 20) / 3, // 留出空隙
+      legendElementHeight = 20,
+      legendSpacing = 10; // 设置更大的间隔
+
+  // 定义情感的名称和颜色比例尺
+  var sentiments = ["positive", "negative", "neutral"];
+
+  // 为每个情感添加一个矩形和文字标签
+  sentiments.forEach(function(sentiment, i) {
+    var gradientId = "gradient-" + sentiment;
+
+    var lowIntensityX = i * (legendElementWidth + legendSpacing) + 25; // 增加偏移量
+    var highIntensityX = (i + 1) * (legendElementWidth + legendSpacing) - legendSpacing - 35; // 减少偏移量
+    var arrowY = legendElementHeight + legendSpacing * 2 + 10;
+
+    // 添加线性渐变
+    var gradient = legendSvg.append("defs")
+          .append("linearGradient")
+          .attr("id", gradientId)
+          .attr("x1", "0%")
+          .attr("y1", "0%")
+          .attr("x2", "100%")
+          .attr("y2", "0%");
+        gradient.append("stop").attr("offset", "0%").style("stop-color", colors[sentiment].range()[0]);
+        gradient.append("stop").attr("offset", "100%").style("stop-color", colors[sentiment].range()[1]);
+
+     // 添加表示颜色的矩形，并考虑间隔
+     legendSvg.append("rect")
+          .attr("x", i * (legendElementWidth + legendSpacing))
+          .attr("y", 0)
+          .attr("width", legendElementWidth)
+          .attr("height", legendElementHeight)
+          .style("fill", "url(#" + gradientId + ")")
+          .on("mouseover", function() {
+              highlightSentiment(sentiment);
+          })
+          .on("mouseout", function() {
+              unhighlightSentiment();
+          });
+
+    function highlightSentiment(sentiment) {
+      svg.selectAll("text")
+          .transition()
+          .duration(200)
+          .style("opacity", function(d) {
+              return d.sentiment === sentiment ? 1 : 0;
+          });
+    }
+
+    function unhighlightSentiment() {
+      svg.selectAll("text")
+            .transition()
+            .duration(200)
+            .style("opacity", 1);
+    }
+
+
+  // 添加描述情感的文字，并考虑间隔
+  legendSvg.append("text")
+        .attr("x", i * (legendElementWidth + legendSpacing) + legendElementWidth / 2)
+        .attr("y", legendElementHeight + legendSpacing)
+        .attr("text-anchor", "middle")
+        .text(sentiment)
+        .style("font-family","Merriweather" )
+            
+// 添加 "low intensity" 文字
+legendSvg.append("text")
+        .attr("x", i * (legendElementWidth + legendSpacing))
+        .attr("y", legendElementHeight + legendSpacing * 2 + 10)
+        .attr("text-anchor", "start")
+        .text("low")
+        .style("font-family","Merriweather" )
+
+// 添加 "high intensity" 文字
+legendSvg.append("text")
+        .attr("x", (i + 1) * (legendElementWidth + legendSpacing) - legendSpacing) // 调整位置以适应间隙
+        .attr("y", legendElementHeight + legendSpacing * 2 + 10)
+        .attr("text-anchor", "end")
+        .text("high")
+        .style("font-family","Merriweather" )
+      
+// 添加指向箭头
+legendSvg.append("line")
+        .attr("x1", lowIntensityX)
+        .attr("y1", arrowY - 5) // 调整 y 坐标以便箭头在文字上方
+        .attr("x2", highIntensityX)
+        .attr("y2", arrowY - 5)
+        .attr("stroke", "black")
+        .attr("marker-end", "url(#arrow)"); // 这个属性将箭头添加到线条的末端
+
+
+// 在 SVG defs 中定义箭头标记
+legendSvg.append("defs")
+        .append("marker")
+        .attr("id", "arrow")
+        .attr("viewBox", "0 0 10 10")
+        .attr("refX", 5)
+        .attr("refY", 5)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M 0 0 L 10 5 L 0 10 z")
+        .style("fill", "black");
+});
+
+window.addEventListener('message', function(event) {
+
+    if (event.data.type && event.data.type === 'dateChange') {
+        var date = event.data.date;
+        console.log('Received date:', date);
+        updateWordCloud(date); // 此处添加更新词云图的逻辑
+    }
+});
+
+
+</script>
+
+</body>
+
+
+
