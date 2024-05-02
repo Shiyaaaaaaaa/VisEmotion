@@ -1,0 +1,51 @@
+.lil-gui {
+    position: fixed; /* 定位方式设为固定 */
+    right: 10px; /* 从右边界开始的距离 */
+    top: 50%; /* 从上边界开始的距离，设为50%使其位于垂直中间 */
+    transform: translateY(50%); /* 使控制面板向下平移
+    width: 300px; /* 控制面板的宽度 */
+    font-size: 18px; /* 控制面板的字体大小 */
+    align-items: stretch; /* 添加此行使项目填充整个宽度 */
+    padding: 5px;  /* 修改这个数值以调整间距 */
+  }
+
+  .lil-gui .controller.number {
+    flex-direction: column; /* 使文字和数字输入框在一个竖直方向上 */
+    width: 400px; /* 控制器的宽度 */
+    margin-bottom: 10px;  /* 修改这个数值以调整间距 */
+  }
+
+  .lil-gui .controller.option {
+    flex-direction: column; /* 使文字和下拉框在一个竖直方向上 */
+    width: 400px; /* 控制器的宽度 */
+    margin-bottom: 10px;  /* 修改这个数值以调整间距 */
+  }
+
+  .lil-gui .widget {
+    width: 400px; /* 控制面板内部元素的宽度 */
+    margin-bottom: 10px;  /* 修改这个数值以调整间距 */
+  }
+
+  .lil-gui .slider {
+    width: 400px; /* 滑块的宽度 */
+    margin-bottom: 10px;  /* 修改这个数值以调整间距 */
+  }
+
+  .lil-gui input[type="number"] {
+    width: 200px; /* 更小的数字输入框的宽度 */
+    font-size: 18px; /* 数字的字体大小 */
+    margin-bottom: 10px;  /* 修改这个数值以调整间距 */
+  }
+
+
+  /* Media query for screens smaller than 600px */
+  @media (max-width: 600px) {
+    .lil-gui {
+      width: 200px; /* 在小屏幕上，更大的增加控制面板的宽度 */
+      font-size: 16px; /* 在小屏幕上，降低字体大小 */
+    }
+
+    .lil-gui input[type="number"] {
+      width: 80px; /* 在小屏幕上，更大的增加数字输入框的宽度 */
+    }
+}

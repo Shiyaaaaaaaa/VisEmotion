@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Emotion Web</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="./assets/css/main.css">
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+		<!--卡片字体-->
+		<link href="https://fonts.googleapis.com/css2?family=Lumanosimo&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+
+		<link
+		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap"rel="stylesheet"/>
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"rel="stylesheet"/>
+		<link href="./assets/css/styles.css" rel="stylesheet" />
+		<link href="./assets/css/gui.css" rel="stylesheet" >
+		
+		<style>
+			/* 自定义按钮样式 */
+			.styledButton {
+				/* 添加边框 */
+				border: 2px solid #eef0f1;
+				/* 更改字体颜色 */
+				color: #060606;
+				font-size: 16px;
+				/* 添加悬停效果 */
+				transition: background-color 0.3s ease-in-out;
+				background: rgba(239, 230, 230, 0.1);
+				backdrop-filter: blur(10px);
+				border-radius: 10px;
+				box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+				transition: all 0.3s ease-in-out;
+				transform: translateY(-10%);
+				font-family: 'Lumanosimo', serif;
+			}
+		
+			/* 悬停时的样式 */
+			.styledButton:hover {
+				background-color: #e8acac;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="emotion-space">
+			<span class="line">Life's hurdles may build walls, </span>
+			<span class="line"> and inner sorrow may construct a box of emotional distress.</span>
+			<span class="line">Yet, there always dances a spirit yearning for joy.</span>
+		</div>
+		
+
+		<button class="burger" onclick="toggleMenuNew()"></button>
+		<div class="background"></div>
+		<div class="menu" id="yourMenu">
+			<nav>
+				<a class="active" style="animation-delay: 0.2s" href="emotionBox.html">Emotion Projection: The Empathy Box</a>
+				<a style="animation-delay: 0.3s" href="./WriteDiary.html">Write your Diary</a>
+				<a style="animation-delay: 0.4s" href="./TimeVisualisation/Timeline.html">VisEmotion: Timeline</a>
+				<a style="animation-delay: 0.5s" href="./Landscape.html">Physicalization: Mental Landscape</a>
+			</nav>
+		</div>		
+
+		<!-- textCard-->
+		<div id="center-left-text">
+			<h1>The Empathy Box:</h1>
+			<h2>Visualizing Struggles</h2>
+			<p>Welcome to the Empathy Box! More than just a box, it is a symbolic space that visualizes our struggles mixed with outside obstacles and inner pressures and emotions. Here, you can manipulate the length and width of the box, each representing varying levels of external obstacles and inner pressures respectively.</p> 
+			<p>Emotions influence the box's material and the color of the surrounding atmosphere. Engage in this transformative experience, gain a deeper feeling of visualizing how varying conditions affect our mental states. </p>
+			<!-- 添加一个按钮 -->
+			<button id="navigateButton" class="styledButton">Click to Write Your Diary </button>
+		</div>
+		
+		<script>
+			// 当按钮被点击时，跳转到另一个页面
+			document.getElementById("navigateButton").addEventListener("click", function() {
+				// 修改下面的链接为你想要跳转的页面
+				window.location.href = "WriteDiary.html";
+			});
+		</script>
+
+		<!--菜单打开关闭逻辑-->
+		<script> 
+			let openedBy = null;  // 菜单的开启方式：'button'、'camera'或null
+			let ignoreCamera = false;  // 当关闭菜单后，我们暂时忽略相机的位置
+			let previousCameraZ = null;  // 用于跟踪相机的前一个位置
+
+			function toggleMenuNew() {
+			if (document.body.classList.contains('manual-open')) {
+				document.body.classList.remove('manual-open');
+				openedBy = null;
+				ignoreCamera = true;  // 当关闭菜单后，我们暂时忽略相机的位置
+			} else {
+				document.body.classList.add('manual-open');
+				openedBy = 'button';
+				ignoreCamera = false;  // 当通过按钮打开菜单时，我们不再忽略相机的位置
+			}
+			}
+		</script>
+		
+
+		<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/",
+					"three/nodes": "./jsm/nodes/Nodes.js"
+				}
+			}
+		</script>
+		<script type="module" src="main.js"></script>
+
+		<!--打字机动画-->
+		<script>
+			let hoverText = document.querySelector('.emotion-space');  
+			hoverText.addEventListener('mouseover', function() {
+			let lines = hoverText.querySelectorAll('.line');
+			lines.forEach(line => {
+				let newLine = line.cloneNode(true);  // 克隆原有元素
+				newLine.classList.add('typewriter');  // 添加动画样式
+				line.parentNode.replaceChild(newLine, line);  // 使用新元素替换原有元素
+			});
+		});
+		</script>
+
+	</body>
+</html>

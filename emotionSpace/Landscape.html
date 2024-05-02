@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<!--codes adpated from https://threejs.org/examples/-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical Visualisation</title>
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+        <link href="https://fonts.googleapis.com/css2?family=Caprasimo&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Alice&display=swap" rel="stylesheet">
+
+        <link type="text/css" rel="stylesheet" href="main.css" />
+
+        <!--CSS-->
+    
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap"rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Lumanosimo&display=swap" rel="stylesheet">
+
+    <!--menu CSS-->
+    <link href="../emotionSpace/TimeVisualisation/assets/css/menu.css" rel="stylesheet" />
+
+        <style>
+            body {
+                background-color: #bfe3dd;
+                color: #000;
+                font-family: 'Alice', sans-serif;
+                font-size: 18px; 
+            }
+
+            a {
+                color: #986b60;
+            }
+
+            h2 {
+                font-size: 32px; 
+                color: #a97568; 
+                font-family: 'Caprasimo', sans-serif;
+            }
+
+            label {
+                font-size: 18px; 
+                font-family: 'Alice', sans-serif;
+            }
+
+            select {
+                font-size: 16px; 
+                font-family: 'Alice', sans-serif;
+            }
+
+        </style>
+</head>
+
+<body>
+    <button class="burger" onclick="toggleMenu()"></button>
+		<div class="background"></div>
+		<div class="menu" id="yourMenu">
+			<nav>
+				<a style="animation-delay: 0.2s" href="./emotionBox.html">Emotion Projection: The Empathy Box</a>
+				<a style="animation-delay: 0.3s" href="./WriteDiary.html">Write your Diary</a>
+				<a style="animation-delay: 0.4s" href="../emotionSpace/TimeVisualisation/Timeline.html">VisEmotion: Timeline</a>
+				<a class="active phy" style="animation-delay: 0.5s" href="./Landscape.html">Physicalization: Mental Landscape</a>
+			</nav>
+		</div>	
+
+
+    <div id="info">
+        <h2>Emotion Physicalization: Mental Landscape</h2> 
+        Scroll OR Choose: <select id="modelSize">
+            <option value="1">small</option>
+            <option value="2">medium</option>
+            <option value="3">large</option>
+        </select>
+        Example Landscape:
+        <select id="loadLandscapeModel">
+            <option value="landscape.glb">Menta Landscape</option>
+            <option value="landscape1.glb">Example Model 1</option>
+            <option value="landscape2.glb">Example Model 2</option>
+            <option value="landscape3.glb">Example Model 3</option>
+            <option value="landscape4.glb">Example Model 4</option>
+        </select>
+
+        <div class="row">
+            <div class="input-group">
+                <label for="loadEmotionModel">Emotion Basics (3 basic categories):</label>
+                <select id="loadEmotionModel">
+                    <option>--Choose--</option>
+                    <option value="positive.glb" style = "background-color: #faca81;">Positive</option>
+                    <option value="neutral.glb" style = "background-color: #d5f5c6;">Neutral</option>
+                    <option value="negative.glb" style = "background-color: #c6def5;">Negative</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="loadElementModel">Emotion Elements (11 specific types):</label>
+                <select id="loadElementModel">
+                    <option>--Choose--</option>
+                    <optgroup label="Positive Elements (Flowers)" style = "background-color: #faca81;">
+                        <option value="love.glb">Love</option>
+                        <option value="joy.glb">Joy</option>
+                        <option value="optimism.glb">Optimism</option>
+                        <option value="anticipation.glb">Anticipation</option>
+                    </optgroup>
+
+                    <optgroup label="Neutral Element (Grass)" style = "background-color: #d5f5c6;">
+                        <option value="trust.glb">Trust</option>
+                    </optgroup>
+
+                    <optgroup label="Negative Element (Crystal & Convex Beanch)" style = "background-color: #c6def5;">
+                        <option value="angry.glb">Angry</option>
+                        <option value="disgust.glb">Disgust</option>
+                        <option value="sadness.glb">Sadness</option>
+                        <option value="pessimism.glb">Pessimism</option>
+                        <option value="surprise.glb">Surprise</option>
+                        <option value="fear.glb">Fear</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import maps polyfill -->
+    <!-- Remove this when import maps will be widely supported -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "../build/three.module.js",
+                "three/addons/": "./jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+        let camera, scene, renderer;
+        let model;
+
+        document.getElementById('modelSize').addEventListener('change', function() {
+            if(model) {
+                let scale = this.value;
+                model.scale.set(scale, scale, scale);
+            }
+        });
+
+        // 定义加载模型的函数
+        function loadModel(modelPath) {
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath('jsm/libs/draco/gltf/');
+
+            const loader = new GLTFLoader();
+            loader.setDRACOLoader(dracoLoader);
+            loader.setPath('models/gltf/AVIFTest/');
+            loader.load(modelPath, function (gltf) {
+
+        // 移除之前加载的模型
+        if (model) {
+            scene.remove(model);
+        }
+        model = gltf.scene;
+        scene.add(model);
+
+        // Set initial scale for specific models
+        let scale = document.getElementById('modelSize').value;
+        if (modelPath === 'landscape.glb' ||
+            modelPath === 'neutral.glb') {
+            model.scale.set(scale * 0.6, scale * 0.6, scale * 0.6);
+        }else if (modelPath === 'negative.glb' ){
+            model.scale.set(scale * 0.5, scale * 0.5, scale * 0.5);
+        }else if (modelPath === 'positive.glb'  ||
+            modelPath === 'trust.glb' ){
+            model.scale.set(scale * 2, scale * 2, scale * 2);
+        }else if (modelPath === 'love.glb' ||
+            modelPath === 'joy.glb'||
+            modelPath === 'optimism.glb'||
+            modelPath === 'anticipation.glb'||
+            modelPath === 'angry.glb'||
+            modelPath === 'disgust.glb'||
+            modelPath === 'sadness.glb'||
+            modelPath === 'surprise.glb'||
+            modelPath === 'pessimism.glb'){
+            model.scale.set(scale * 4, scale * 4, scale * 4)
+        }  
+            // 调试：记录加载的模型
+            console.log(model);
+        }, undefined, function (error) {
+            // 错误处理：记录加载过程中的任何错误
+            console.error(error);
+        });
+    }
+
+    // 获取下拉选项元素
+const landscapeModelSelector = document.getElementById('loadLandscapeModel');
+const emotionModelSelector = document.getElementById('loadEmotionModel');
+const emotionElementSelector = document.getElementById('loadElementModel');
+
+
+// 添加事件监听器，当选择项改变时加载新模型
+landscapeModelSelector.addEventListener('change', function () {
+    const selectedModelPath = this.value; // 获取选中的模型路径
+    loadModel(selectedModelPath); // 调用加载模型的函数
+});
+
+emotionModelSelector.addEventListener('change', function () {
+    const selectedModelPath = this.value; 
+    loadModel(selectedModelPath); 
+});
+
+emotionElementSelector.addEventListener('change', function () {
+    const selectedModelPath = this.value; 
+    loadModel(selectedModelPath); 
+});
+
+
+    init();
+    animate();
+
+        function init() {
+
+            camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
+            camera.position.set( 1.5, 4, 9 );
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0xf6eedc );
+
+            // Add ambient light (according to your second file)
+            var ambient = new THREE.AmbientLight( 0x404040,5.0 );
+            scene.add( ambient );
+
+            // Add directional light (according to your second file)
+            var directionalLight = new THREE.DirectionalLight( 0xffffff,5.0 );
+            directionalLight.position.set( 1, 1, 1);
+            scene.add( directionalLight );
+
+            //load the model
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath( 'jsm/libs/draco/gltf/' );
+
+            const loader = new GLTFLoader();
+            loader.setDRACOLoader( dracoLoader );
+            loader.setPath( 'models/gltf/AVIFTest/' );
+            loader.load( 'landscape.glb', function ( gltf ) {
+                model = gltf.scene;
+                scene.add( model );
+
+                // Set initial scale only for the "landscape" model
+        let scale = document.getElementById('modelSize').value;
+        if (model === gltf.scene) {
+            model.scale.set(scale * 0.6, scale * 0.6, scale * 0.6);
+        }
+                // Debugging: log the loaded model
+                console.log(model);
+            }, undefined, function (error) {
+                // Error handling: log any errors that occurred during loading
+                console.error(error);
+            });
+
+            //
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            const controls = new OrbitControls( camera, renderer.domElement );
+            controls.addEventListener( 'change', render );
+            controls.target.set( 0, 2, 0 );
+            controls.update();
+
+            window.addEventListener( 'resize', onWindowResize );
+
+        }
+
+        function onWindowResize() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+
+            render();
+
+        }
+
+        //
+        function animate() {
+
+            requestAnimationFrame( animate );
+            render();
+
+        }
+
+        function render() {
+
+            renderer.render( scene, camera );
+
+        }
+    </script>
+
+    <script type="text/javascript">
+        const toggleMenu = () => document.body.classList.toggle("open");
+    </script>
+</body>
+</html>

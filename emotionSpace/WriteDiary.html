@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emotion Analysis - Diary</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap"rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lumanosimo&display=swap" rel="stylesheet">
+
+    <!--menu CSS-->
+    <link href="./TimeVisualisation/assets/css/menu.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster&display=swap">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kalam&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f7f7f7;
+        }
+        #diary-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.35rem;
+            width: 54%;
+            margin-bottom: 1.8rem;
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.8rem;
+            box-shadow: 0px 3.6px 7.2px rgba(0, 0, 0, 0.1);
+        }
+        .input-label {
+            font-weight: bold;
+            font-size: 16.2px;
+            margin-bottom: 0.45rem;
+            font-family: 'Pacifico', cursive;
+        }
+        input[type="date"],
+        textarea {
+            width: 90%;
+            padding: 10.8px;
+            border: 1px solid #ccc;
+            border-radius: 4.5px;
+            font-size: 14.4px;
+            resize: vertical;
+            font-family: 'Kalam', cursive;
+        }
+        input[type="date"],
+        textarea {
+            font-family: 'Kalam', cursive;
+        }
+        .button-group {
+            display: flex;
+            gap: 1.35rem;
+            justify-content: flex-end;
+        }
+        .action-button {
+            padding: 10.8px 21.6px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4.5px;
+            transition: background-color 0.3s ease;
+            font-size: 14.4px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .action-button:hover {
+            transform: scale(1.25);
+        }
+        .analyze-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .clear-button {
+            background-color: #ff6666;
+            color: white;
+        }
+        h1 {
+            margin-bottom: 1.8rem;
+            font-size: 28.8px;
+            font-family: 'Pacifico', cursive;
+        }
+        
+    </style>
+</head>
+<body>
+    <button class="burger" onclick="toggleMenu()"></button>
+		<div class="background"></div>
+		<div class="menu" id="yourMenu">
+			<nav>
+				<a style="animation-delay: 0.2s" href="./emotionBox.html">Emotion Projection: The Empathy Box</a>
+				<a class="active vis" style="animation-delay: 0.3s" href="./WriteDiary.html">Write your Diary</a>
+				<a style="animation-delay: 0.4s" href="../emotionSpace/TimeVisualisation/Timeline.html">VisEmotion: Timeline</a>
+				<a style="animation-delay: 0.5s" >Physicalization: Mental Landscape</a>
+			</nav>
+		</div>		
+
+    <h1>Write Your Diary</h1>
+    <form id="diary-form">
+        <label class="input-label" for="time-input">Date:</label>
+        <input type="date" id="time-input" name="time-input">
+        
+        <label class="input-label" for="text-input">Diary Entry:</label>
+        <textarea id="text-input" name="text-input" rows="8" cols="40" placeholder="Write your diary entry"></textarea>
+
+        <div class="button-group">
+            <button class="action-button analyze-button" id="analyze-button" type="submit">Analyze</button>
+            <button class="action-button clear-button" type="button" id="clear-button">Clear Text</button>
+        </div>
+        <p id="error-message" style="color: red; display: none;">Please fill in all fields.</p>
+    </form>
+    <div id="analysis-result"></div>
+
+    <script>
+        document.getElementById('diary-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var text = document.getElementById('text-input').value;
+            var time = document.getElementById('time-input').value;
+            var errorMessage = document.getElementById('error-message');
+
+            if (text && time) {
+                errorMessage.style.display = 'none'; // 隐藏错误消息
+                var requestData = { text: text, time: time };
+                console.log('Sending:', requestData);
+
+                fetch('http://127.0.0.1:8000/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text, time: time })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Data:', data);
+                })
+                .catch(error => {
+                    console.error('An error occurred:', error);
+                });
+            } else {
+                errorMessage.style.display = 'block'; // 显示错误消息
+            }
+        });
+
+        document.getElementById('clear-button').addEventListener('click', function() {
+            document.getElementById('text-input').value = "";
+        });
+
+        var textInput = document.getElementById('text-input');
+
+        textInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
+    <script type="text/javascript">
+        const toggleMenu = () => document.body.classList.toggle("open");
+    </script>
+</body>
+</html>
