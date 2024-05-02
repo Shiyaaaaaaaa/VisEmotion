@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Circle Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+
+    <style>
+        #mySvg {
+            /*transform: translate(100px, 50px); /* x and y coordinates */
+            background-color: #333333;
+        }
+        .tooltip {
+            position: absolute;
+            visibility: hidden;
+            background-color: #6b6969;
+            border: 1px solid #f1efef;
+            border-radius: 5px;
+            padding: 3px 5px;
+            color: #f8f5f5;
+            opacity: 0.8;
+        }
+        .week-text {
+            padding: 5px;
+            font-size: 14px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+    <svg id="mySvg" width="100vw" height="1000px" viewBox="0 0 1000 1000" style="transform: translate(0px, 50px);"></svg>
+
+
+
+    <div id="tooltip" class="tooltip"></div>
+    <script>
+        var svg = d3.select("#mySvg");
+
+        svg.append("defs").append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 5)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "white");//修改颜色
+
+        var colorScale = d3.scaleOrdinal()
+            .domain(["positive", "neutral", "negative"])
+            .range([d3.schemeSet3[5], d3.schemeSet3[6], d3.schemeSet3[4]]);
+
+        // 新增一个比例尺，根据情绪强度的绝对值调整圆的半径。
+        var sizeScale = d3.scaleLinear()
+            .domain([0, 1])
+            .range([5, 25]); // 调整最小和最大半径的大小。
+
+        var radii = d3.range(1, 8).map(function(d) { return d * 50; });
+        var numRays = 10;
+
+        var weeklyEmotions = [
+    [["positive", 0.8], ["neutral", 0.3], ["negative", 0.9], ["positive", 0.2], ["neutral", 0.5], ["negative", 0.7], ["positive", 0.6]],
+    [["neutral", 0.5], ["negative", 0.8], ["positive", 0.3], ["neutral", 0.6], ["positive", 0.2], ["negative", 0.7], ["positive", 0.9]],
+    [["negative", 0.7], ["positive", 0.6], ["neutral", 0.3], ["negative", 0.8], ["positive", 0.5], ["neutral", 0.2], ["positive", 0.9]],
+    [["positive", 0.4], ["neutral", 0.6], ["negative", 0.1], ["positive", 0.9], ["neutral", 0.2], ["negative", 0.3], ["positive", 0.7]],
+    [["neutral", 0.7], ["negative", 0.4], ["positive", 0.8], ["neutral", 0.5], ["positive", 0.6], ["negative", 0.3], ["positive", 0.1]],
+    [["negative", 0.2], ["positive", 0.4], ["neutral", 0.9], ["negative", 0.6], ["positive", 0.7], ["neutral", 0.1], ["positive", 0.3]],
+    [["positive", 0.2], ["neutral", 0.8], ["negative", 0.5], ["positive", 0.6], ["neutral", 0.7], ["negative", 0.1], ["positive", 0.9]],
+    [["neutral", 0.6], ["negative", 0.1], ["positive", 0.7], ["neutral", 0.3], ["positive", 0.8], ["negative", 0.2], ["positive", 0.4]],
+    [["negative", 0.9], ["positive", 0.1], ["neutral", 0.7], ["negative", 0.4], ["positive", 0.3], ["neutral", 0.8], ["positive", 0.5]],
+    [["positive", 0.3], ["neutral", 0.4], ["negative", 0.7], ["positive", 0.8], ["neutral", 0.1], ["negative", 0.6], ["positive", 0.2]]
+];
+
+
+var circlesGroup = svg.append("g");
+var arrowsGroup = svg.append("g");
+
+radii.forEach(function(radius, i) {
+    svg.append("circle")
+        .attr("cx", 500)
+        .attr("cy", 500)
+        .attr("r", radius)
+        .attr("fill", "none")
+        .attr("stroke", "white");//修改颜色
+
+    d3.range(numRays).forEach(function(ray) {
+        var x = 500 + radius * Math.cos(2 * Math.PI * ray / numRays);
+        var y = 500 + radius * Math.sin(2 * Math.PI * ray / numRays); 
+
+        var circle = circlesGroup.append("circle")
+            .attr("cx", x)
+            .attr("cy", y)
+            .attr("r", sizeScale(Math.abs(weeklyEmotions[ray][i][1]))) // 使用比例尺调整半径的大小
+            .attr("fill", colorScale(weeklyEmotions[ray][i][0]))
+            .classed("ray" + ray, true);  // 添加类
+
+        circle
+        circle
+            .on("mouseover", function() {
+                var currentClass = this.getAttribute('class');
+                circlesGroup.selectAll("circle").style("opacity", 0.2);
+                circlesGroup.selectAll("." + currentClass)
+                    .style("opacity", 1)
+                    .style("stroke", "red")//外圈颜色
+                    .style("stroke-width", "3px"); 
+                var tooltip = d3.select("#tooltip");
+                tooltip.style("visibility", "visible") //tooltip中的提示文本
+                    .html("Day " + (i+1) + ", Week " + (ray+1) + "<br>Emotion: " + weeklyEmotions[ray][i][0] + "<br>Intensity: " + weeklyEmotions[ray][i][1].toFixed(2));
+            })
+            .on("mousemove", function() {
+                var tooltip = d3.select("#tooltip");
+                tooltip.style("top", (d3.event.pageY + 10) + "px")
+                    .style("left", (d3.event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                var currentClass = this.getAttribute('class');
+                circlesGroup.selectAll("circle").style("opacity", 1);
+                circlesGroup.selectAll("." + currentClass).style("stroke", "none");
+                var tooltip = d3.select("#tooltip");
+                tooltip.style("visibility", "hidden");
+            });
+
+        if (i == radii.length - 1) {
+            var arrowX = 500 + (radius + 20) * Math.cos(2 * Math.PI * ray / numRays);
+            var arrowY = 500 + (radius + 20) * Math.sin(2 * Math.PI * ray / numRays);
+
+            arrowsGroup.append("line")
+                .attr("x1", 500)
+                .attr("y1", 500)
+                .attr("x2", arrowX)
+                .attr("y2", arrowY)
+                .attr("stroke", "white") //修改颜色
+                .attr("stroke-width", 2)
+                .attr("marker-end", "url(#arrow)")
+                .classed("ray" + ray, true);  // 添加类
+
+            var weekNumber = ray + 1;
+            var textX = 500 + (radius + 60) * Math.cos(2 * Math.PI * ray / numRays);
+            var textY = 500 + (radius + 60) * Math.sin(2 * Math.PI * ray / numRays);
+            //每周文本
+            var textElement = svg.append("text")
+                .attr("x", textX)
+                .attr("y", textY)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "central")
+                .text("Week " + weekNumber)
+                .attr("fill", "white")
+                .style("font-family", "Merriweather")  // 添加字体样式
+                .style("font-size", "20px")     // 添加字体大小
+                .classed("ray" + ray, true);  // 添加类
+                
+                
+            textElement
+                .on("mouseover", function() {
+                    var currentClass = this.getAttribute('class');
+                    circlesGroup.selectAll("circle").style("opacity", 0.2);
+                    circlesGroup.selectAll("." + currentClass)
+                        .style("opacity", 1)
+                        .style("stroke", "white");//修改颜色
+                    arrowsGroup.selectAll("line").style("opacity", 0.2);
+                    arrowsGroup.selectAll("." + currentClass).style("opacity", 1);
+                    this.style.fill = colorScale(weeklyEmotions[ray][1]);
+                    this.style.fontWeight = "bold";
+                    var tooltip = d3.select("#tooltip");
+                    tooltip.style("visibility", "visible") 
+                        .text("Week " + weekNumber + ", Overall Emotion: " + weeklyEmotions[ray][1]);
+                })
+                .on("mousemove", function() {
+                    var tooltip = d3.select("#tooltip");
+                    tooltip.style("top", (d3.event.pageY + 10) + "px")
+                        .style("left", (d3.event.pageX + 10) + "px");
+                })
+                .on("mouseout", function() {
+                    var currentClass = this.getAttribute('class');
+                    circlesGroup.selectAll("circle").style("opacity", 1);
+                    circlesGroup.selectAll("." + currentClass).style("stroke", "none");
+                    arrowsGroup.selectAll("line").style("opacity", 1);
+                    this.style.fill = "white"; //修改颜色
+                    this.style.fontWeight = "normal";
+                    var tooltip = d3.select("#tooltip");
+                    tooltip.style("visibility", "hidden");
+                });
+        }
+    });
+});
+
+    </script>
+</body>
+</html>

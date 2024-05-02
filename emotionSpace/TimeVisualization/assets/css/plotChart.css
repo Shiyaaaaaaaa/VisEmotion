@@ -1,0 +1,79 @@
+.axis text {
+    font-size: 16px;
+    font-family: 'Playfair Display', serif;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+.dot {
+    stroke-width: 3px;
+}
+.legend {
+    font-size: 16px;
+    font-family: 'Merriweather', serif;
+}
+.filter {
+    font-size: 1.3em;
+    font-family: 'Lobster', cursive;
+    padding: 2px;
+    margin-top: 10px;  /* 减小这个值 */
+    margin-left: 30px;
+    margin-bottom: 5px;  /* 减小这个值 */
+}
+.filter:hover {
+    background-color: lightgrey;
+}
+.filterDiv {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;  /* 更改这里可以调整离图的距离 */
+}
+
+#emotionSelect {
+    color: #34495e;
+    text-align: justify;
+    font-size: 3vmin; /* responsive font size */
+    line-height: 4.5vmin; /* responsive line height */
+    font-family: 'Merriweather', serif;
+    margin: 10px 0; /* add some vertical margin */
+    padding: 20px 10px; /* increase padding for better appearance */
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1); /* add text shadow */
+    border: 1px solid #999; /* add border */
+    background-color: #f3e7ca; /* add background color */
+    border-radius: 5px; /* add border radius for rounded corners */
+}
+
+
+.info-display {
+position: absolute;
+top: 100%; /* 调整到顶部 */
+left: 10%; /* 左对齐 */
+transform: translateX(50%); /* 确保对齐 */
+padding: 10px;
+text-align: center;
+display: none; /* 初始设置为不可见 */
+font-family: 'Roboto Slab', serif;
+background-color: rgb(227, 231, 235);
+overflow: hidden;
+}
+
+.info-display:before {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: inherit;
+border: 1px solid rgb(46, 46, 46);
+z-index: -1;
+filter: blur(10px);
+flex:2
+}
+
+
+
+
